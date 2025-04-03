@@ -68,7 +68,7 @@ const OpportunitiesPage: React.FC = () => {
       const { data: stageData, error: stageError } = await supabase
         .from('opportunities')
         .select('stage, count(*)', { count: 'exact' })
-        .groupby('stage');
+        .group('stage');
       
       if (!stageError && stageData) {
         setStageSummary(stageData as StageSummary[]);
@@ -78,7 +78,7 @@ const OpportunitiesPage: React.FC = () => {
       const { data: typeData, error: typeError } = await supabase
         .from('opportunities')
         .select('opportunity_type, count(*)', { count: 'exact' })
-        .groupby('opportunity_type');
+        .group('opportunity_type');
       
       if (!typeError && typeData) {
         setTypeSummary(typeData as TypeSummary[]);
