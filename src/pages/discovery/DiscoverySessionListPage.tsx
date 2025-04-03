@@ -15,14 +15,9 @@ import { Button } from '@/components/ui/button';
 import { Plus, Calendar, Building } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import DiscoverySessionForm from '@/components/discovery/DiscoverySessionForm';
+import { Tables } from '@/integrations/supabase/types';
 
-type DiscoverySession = {
-  id: string;
-  client_name: string;
-  opportunity_name: string | null;
-  session_date: string;
-  created_at: string;
-};
+type DiscoverySession = Tables<'discovery_sessions'>;
 
 const DiscoverySessionListPage: React.FC = () => {
   const navigate = useNavigate();

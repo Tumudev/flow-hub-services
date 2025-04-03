@@ -8,6 +8,7 @@ import { format } from 'date-fns';
 import { CalendarIcon } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from "sonner";
+import { TablesInsert } from '@/integrations/supabase/types';
 
 import {
   Dialog,
@@ -41,6 +42,7 @@ const formSchema = z.object({
 });
 
 type FormValues = z.infer<typeof formSchema>;
+type DiscoverySessionInsert = TablesInsert<'discovery_sessions'>;
 
 interface DiscoverySessionFormProps {
   isOpen: boolean;
@@ -63,9 +65,15 @@ const DiscoverySessionForm: React.FC<DiscoverySessionFormProps> = ({
 
   const createSessionMutation = useMutation({
     mutationFn: async (values: FormValues) => {
+      const sessionData: DiscoverySessionInsert = {
+        client_name: values.client_name,
+        opportunity_name: values.opportunity_name || null,
+        session_date: values.session_date.toISOString(),
+      };
+
       const { data, error } = await supabase
         .from('discovery_sessions')
-        .insert([values]);
+        .insert([sessionData]);
       
       if (error) throw error;
       return data;

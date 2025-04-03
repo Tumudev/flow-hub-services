@@ -8,14 +8,9 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from "sonner";
 import { supabase } from '@/integrations/supabase/client';
+import { Tables } from '@/integrations/supabase/types';
 
-type DiscoverySession = {
-  id: string;
-  client_name: string;
-  opportunity_name: string | null;
-  session_date: string;
-  notes: string | null;
-};
+type DiscoverySession = Tables<'discovery_sessions'>;
 
 const DiscoverySessionDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();

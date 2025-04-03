@@ -13,7 +13,6 @@ import DashboardPage from "@/pages/DashboardPage";
 import SolutionListPage from "@/pages/solutions/SolutionListPage";
 import SolutionDetailPage from "@/pages/solutions/SolutionDetailPage";
 import OpportunitiesPage from "@/pages/OpportunitiesPage";
-import DiscoveryPage from "@/pages/DiscoveryPage";
 import DiscoverySessionListPage from "@/pages/discovery/DiscoverySessionListPage";
 import DiscoverySessionDetailPage from "@/pages/discovery/DiscoverySessionDetailPage";
 import NotFound from "@/pages/NotFound";
