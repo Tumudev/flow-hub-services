@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { format } from 'date-fns';
@@ -74,14 +75,16 @@ const OpportunityDetailPage: React.FC = () => {
       
       if (error) throw error;
       return data as Opportunity;
-    },
-    onSettled: (data) => {
-      if (data) {
-        setDescription(data.description || '');
-        setStage(data.stage);
-      }
-    },
+    }
   });
+
+  // Set initial form values when opportunity data is loaded
+  useEffect(() => {
+    if (opportunity) {
+      setDescription(opportunity.description || '');
+      setStage(opportunity.stage);
+    }
+  }, [opportunity]);
 
   // Update opportunity mutation
   const updateOpportunityMutation = useMutation({
@@ -181,7 +184,7 @@ const OpportunityDetailPage: React.FC = () => {
   }
 
   // Get the list of available stages based on opportunity type
-  const availableStages = opportunity.opportunity_type === 'Concept' ? conceptStages : auditStages;
+  const availableStages = opportunity ? (opportunity.opportunity_type === 'Concept' ? conceptStages : auditStages) : [];
 
   return (
     <div className="space-y-6">
@@ -189,128 +192,130 @@ const OpportunityDetailPage: React.FC = () => {
         <Button variant="ghost" size="icon" onClick={() => navigate('/opportunities')}>
           <ArrowLeft className="h-5 w-5" />
         </Button>
-        <h1 className="text-2xl font-bold tracking-tight">{opportunity.name}</h1>
+        <h1 className="text-2xl font-bold tracking-tight">{opportunity?.name}</h1>
       </div>
 
-      <div className="bg-white rounded-md shadow p-6 space-y-6">
-        <div className="flex justify-between">
-          <div>
-            <span className="px-2 py-1 text-xs rounded-md font-medium bg-gray-100 inline-flex items-center gap-1">
-              <Tag className="w-3 h-3" />
-              {opportunity.opportunity_type}
-            </span>
+      {opportunity && (
+        <div className="bg-white rounded-md shadow p-6 space-y-6">
+          <div className="flex justify-between">
+            <div>
+              <span className="px-2 py-1 text-xs rounded-md font-medium bg-gray-100 inline-flex items-center gap-1">
+                <Tag className="w-3 h-3" />
+                {opportunity.opportunity_type}
+              </span>
+            </div>
+            <div className="flex gap-2">
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => setIsEditing(!isEditing)}
+              >
+                <Edit className="h-4 w-4 mr-2" />
+                Edit
+              </Button>
+              <Button 
+                variant="destructive" 
+                size="sm"
+                onClick={handleDelete}
+                disabled={deleteOpportunityMutation.isPending}
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Delete
+              </Button>
+            </div>
           </div>
-          <div className="flex gap-2">
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={() => setIsEditing(!isEditing)}
-            >
-              <Edit className="h-4 w-4 mr-2" />
-              Edit
-            </Button>
-            <Button 
-              variant="destructive" 
-              size="sm"
-              onClick={handleDelete}
-              disabled={deleteOpportunityMutation.isPending}
-            >
-              <Trash2 className="h-4 w-4 mr-2" />
-              Delete
-            </Button>
-          </div>
-        </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <h3 className="text-sm font-medium text-gray-500 mb-1">Client</h3>
-            <div className="flex items-center">
-              <Building className="h-5 w-5 text-gray-500 mr-2" />
-              <span className="text-lg">{opportunity.client_name}</span>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <h3 className="text-sm font-medium text-gray-500 mb-1">Client</h3>
+              <div className="flex items-center">
+                <Building className="h-5 w-5 text-gray-500 mr-2" />
+                <span className="text-lg">{opportunity.client_name}</span>
+              </div>
+            </div>
+
+            <div>
+              <h3 className="text-sm font-medium text-gray-500 mb-1">Stage</h3>
+              {isEditing ? (
+                <Select
+                  value={stage}
+                  onValueChange={handleStageChange}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select stage" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableStages.map((stageOption) => (
+                      <SelectItem key={stageOption} value={stageOption}>
+                        {stageOption}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              ) : (
+                <div className="flex items-center">
+                  <span className={`px-2 py-1 rounded-md text-sm font-medium ${getStageBadgeColor(opportunity.stage, opportunity.opportunity_type)}`}>
+                    {opportunity.stage}
+                  </span>
+                </div>
+              )}
+            </div>
+
+            <div>
+              <h3 className="text-sm font-medium text-gray-500 mb-1">Estimated Value</h3>
+              <div className="flex items-center">
+                <DollarSign className="h-5 w-5 text-gray-500 mr-2" />
+                <span className="text-lg">{formatCurrency(opportunity.estimated_value)}</span>
+              </div>
+            </div>
+
+            <div>
+              <h3 className="text-sm font-medium text-gray-500 mb-1">Created</h3>
+              <div className="flex items-center">
+                <Calendar className="h-5 w-5 text-gray-500 mr-2" />
+                <span className="text-lg">{format(new Date(opportunity.created_at), 'MMM d, yyyy')}</span>
+              </div>
             </div>
           </div>
 
           <div>
-            <h3 className="text-sm font-medium text-gray-500 mb-1">Stage</h3>
+            <h3 className="text-sm font-medium text-gray-500 mb-1">Description</h3>
             {isEditing ? (
-              <Select
-                value={stage}
-                onValueChange={handleStageChange}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select stage" />
-                </SelectTrigger>
-                <SelectContent>
-                  {availableStages.map((stageOption) => (
-                    <SelectItem key={stageOption} value={stageOption}>
-                      {stageOption}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            ) : (
-              <div className="flex items-center">
-                <span className={`px-2 py-1 rounded-md text-sm font-medium ${getStageBadgeColor(opportunity.stage, opportunity.opportunity_type)}`}>
-                  {opportunity.stage}
-                </span>
+              <div className="space-y-2">
+                <Textarea
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  placeholder="Add a description for this opportunity..."
+                  rows={4}
+                />
+                <div className="flex justify-end gap-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => {
+                      setDescription(opportunity.description || '');
+                      setIsEditing(false);
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                  <Button 
+                    size="sm" 
+                    onClick={saveDescription}
+                    disabled={updateOpportunityMutation.isPending}
+                  >
+                    {updateOpportunityMutation.isPending ? 'Saving...' : 'Save'}
+                  </Button>
+                </div>
               </div>
+            ) : (
+              <p className="text-gray-700 whitespace-pre-wrap">
+                {opportunity.description || 'No description provided.'}
+              </p>
             )}
           </div>
-
-          <div>
-            <h3 className="text-sm font-medium text-gray-500 mb-1">Estimated Value</h3>
-            <div className="flex items-center">
-              <DollarSign className="h-5 w-5 text-gray-500 mr-2" />
-              <span className="text-lg">{formatCurrency(opportunity.estimated_value)}</span>
-            </div>
-          </div>
-
-          <div>
-            <h3 className="text-sm font-medium text-gray-500 mb-1">Created</h3>
-            <div className="flex items-center">
-              <Calendar className="h-5 w-5 text-gray-500 mr-2" />
-              <span className="text-lg">{format(new Date(opportunity.created_at), 'MMM d, yyyy')}</span>
-            </div>
-          </div>
         </div>
-
-        <div>
-          <h3 className="text-sm font-medium text-gray-500 mb-1">Description</h3>
-          {isEditing ? (
-            <div className="space-y-2">
-              <Textarea
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                placeholder="Add a description for this opportunity..."
-                rows={4}
-              />
-              <div className="flex justify-end gap-2">
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={() => {
-                    setDescription(opportunity.description || '');
-                    setIsEditing(false);
-                  }}
-                >
-                  Cancel
-                </Button>
-                <Button 
-                  size="sm" 
-                  onClick={saveDescription}
-                  disabled={updateOpportunityMutation.isPending}
-                >
-                  {updateOpportunityMutation.isPending ? 'Saving...' : 'Save'}
-                </Button>
-              </div>
-            </div>
-          ) : (
-            <p className="text-gray-700 whitespace-pre-wrap">
-              {opportunity.description || 'No description provided.'}
-            </p>
-          )}
-        </div>
-      </div>
+      )}
     </div>
   );
 };
