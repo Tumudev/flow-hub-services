@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useQuery, useMutation } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 import { 
@@ -12,7 +12,9 @@ import {
   Clock, 
   Tag, 
   Edit, 
-  Trash2 
+  Trash2,
+  Link as LinkIcon,
+  Unlink
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -25,13 +27,18 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Opportunity, conceptStages, auditStages } from '@/components/opportunities/interfaces';
+import LinkDiscoverySessionModal from '@/components/opportunities/LinkDiscoverySessionModal';
+import ConfirmationDialog from '@/components/ConfirmationDialog';
 
 const OpportunityDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [isEditing, setIsEditing] = useState(false);
   const [description, setDescription] = useState<string>('');
   const [stage, setStage] = useState<string>('');
+  const [isLinkSessionModalOpen, setIsLinkSessionModalOpen] = useState(false);
+  const [isUnlinkSessionConfirmOpen, setIsUnlinkSessionConfirmOpen] = useState(false);
 
   // Format currency value
   const formatCurrency = (value: number | null) => {
@@ -61,7 +68,7 @@ const OpportunityDetailPage: React.FC = () => {
     return 'bg-gray-100 text-gray-800';
   };
 
-  // Fetch opportunity data
+  // Fetch opportunity data with linked discovery session
   const { data: opportunity, isLoading, error, refetch } = useQuery({
     queryKey: ['opportunity', id],
     queryFn: async () => {
@@ -69,12 +76,25 @@ const OpportunityDetailPage: React.FC = () => {
       
       const { data, error } = await supabase
         .from('opportunities')
-        .select('*')
+        .select(`
+          *,
+          discovery_sessions:discovery_session_id (
+            id,
+            client_name,
+            session_date
+          )
+        `)
         .eq('id', id)
         .single();
       
       if (error) throw error;
-      return data as Opportunity;
+      return data as Opportunity & { 
+        discovery_sessions: { 
+          id: string; 
+          client_name: string; 
+          session_date: string 
+        } | null 
+      };
     }
   });
 
@@ -107,6 +127,54 @@ const OpportunityDetailPage: React.FC = () => {
     onError: (error) => {
       console.error('Error updating opportunity:', error);
       toast.error('Failed to update opportunity');
+    },
+  });
+
+  // Link discovery session mutation
+  const linkSessionMutation = useMutation({
+    mutationFn: async (sessionId: string) => {
+      if (!id) throw new Error('Opportunity ID is required');
+      
+      const { data, error } = await supabase
+        .from('opportunities')
+        .update({ discovery_session_id: sessionId })
+        .eq('id', id);
+      
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['opportunity', id] });
+      toast.success('Discovery session linked successfully');
+      setIsLinkSessionModalOpen(false);
+    },
+    onError: (error) => {
+      console.error('Error linking discovery session:', error);
+      toast.error('Failed to link discovery session');
+    },
+  });
+
+  // Unlink discovery session mutation
+  const unlinkSessionMutation = useMutation({
+    mutationFn: async () => {
+      if (!id) throw new Error('Opportunity ID is required');
+      
+      const { data, error } = await supabase
+        .from('opportunities')
+        .update({ discovery_session_id: null })
+        .eq('id', id);
+      
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['opportunity', id] });
+      toast.success('Discovery session unlinked successfully');
+      setIsUnlinkSessionConfirmOpen(false);
+    },
+    onError: (error) => {
+      console.error('Error unlinking discovery session:', error);
+      toast.error('Failed to unlink discovery session');
     },
   });
 
@@ -148,6 +216,16 @@ const OpportunityDetailPage: React.FC = () => {
     if (window.confirm('Are you sure you want to delete this opportunity? This action cannot be undone.')) {
       deleteOpportunityMutation.mutate();
     }
+  };
+
+  // Handle linking a discovery session
+  const handleLinkSession = (sessionId: string) => {
+    linkSessionMutation.mutate(sessionId);
+  };
+
+  // Handle unlinking a discovery session
+  const handleUnlinkSession = () => {
+    unlinkSessionMutation.mutate();
   };
 
   if (isLoading) {
@@ -278,6 +356,50 @@ const OpportunityDetailPage: React.FC = () => {
             </div>
           </div>
 
+          {/* Linked Discovery Session Section */}
+          <div>
+            <h3 className="text-sm font-medium text-gray-500 mb-2">Linked Discovery Session</h3>
+            {opportunity.discovery_sessions ? (
+              <div className="bg-blue-50 p-4 rounded-md">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <h4 className="font-medium">{opportunity.discovery_sessions.client_name}</h4>
+                    <p className="text-sm text-gray-600">{format(new Date(opportunity.discovery_sessions.session_date), 'MMM d, yyyy')}</p>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => navigate(`/discovery/${opportunity.discovery_sessions?.id}`)}
+                    >
+                      <LinkIcon className="h-4 w-4 mr-1" />
+                      View
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => setIsUnlinkSessionConfirmOpen(true)}
+                    >
+                      <Unlink className="h-4 w-4 mr-1" />
+                      Unlink
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="border border-dashed border-gray-300 p-4 rounded-md text-center">
+                <p className="text-gray-500 mb-3">No discovery session linked to this opportunity.</p>
+                <Button 
+                  variant="outline" 
+                  onClick={() => setIsLinkSessionModalOpen(true)}
+                >
+                  <LinkIcon className="h-4 w-4 mr-2" />
+                  Link Discovery Session
+                </Button>
+              </div>
+            )}
+          </div>
+
           <div>
             <h3 className="text-sm font-medium text-gray-500 mb-1">Description</h3>
             {isEditing ? (
@@ -316,6 +438,24 @@ const OpportunityDetailPage: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Link Discovery Session Modal */}
+      <LinkDiscoverySessionModal
+        isOpen={isLinkSessionModalOpen}
+        onClose={() => setIsLinkSessionModalOpen(false)}
+        onSelect={handleLinkSession}
+      />
+
+      {/* Confirmation Dialog for Unlinking Session */}
+      <ConfirmationDialog
+        isOpen={isUnlinkSessionConfirmOpen}
+        onClose={() => setIsUnlinkSessionConfirmOpen(false)}
+        onConfirm={handleUnlinkSession}
+        title="Unlink Discovery Session"
+        description="Are you sure you want to unlink this discovery session? This will remove the connection between this opportunity and the discovery session."
+        confirmLabel="Unlink"
+        variant="destructive"
+      />
     </div>
   );
 };

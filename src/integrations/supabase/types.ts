@@ -9,6 +9,39 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      discovery_session_solutions: {
+        Row: {
+          created_at: string
+          discovery_session_id: string
+          solution_id: string
+        }
+        Insert: {
+          created_at?: string
+          discovery_session_id: string
+          solution_id: string
+        }
+        Update: {
+          created_at?: string
+          discovery_session_id?: string
+          solution_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "discovery_session_solutions_discovery_session_id_fkey"
+            columns: ["discovery_session_id"]
+            isOneToOne: false
+            referencedRelation: "discovery_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "discovery_session_solutions_solution_id_fkey"
+            columns: ["solution_id"]
+            isOneToOne: false
+            referencedRelation: "solutions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       discovery_sessions: {
         Row: {
           client_name: string
@@ -47,6 +80,7 @@ export type Database = {
           client_name: string
           created_at: string
           description: string | null
+          discovery_session_id: string | null
           estimated_value: number | null
           id: string
           name: string
@@ -58,6 +92,7 @@ export type Database = {
           client_name: string
           created_at?: string
           description?: string | null
+          discovery_session_id?: string | null
           estimated_value?: number | null
           id?: string
           name: string
@@ -69,6 +104,7 @@ export type Database = {
           client_name?: string
           created_at?: string
           description?: string | null
+          discovery_session_id?: string | null
           estimated_value?: number | null
           id?: string
           name?: string
@@ -76,7 +112,15 @@ export type Database = {
           stage?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "opportunities_discovery_session_id_fkey"
+            columns: ["discovery_session_id"]
+            isOneToOne: false
+            referencedRelation: "discovery_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       solutions: {
         Row: {
