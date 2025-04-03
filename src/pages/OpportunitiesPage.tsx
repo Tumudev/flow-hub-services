@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -64,27 +63,47 @@ const OpportunitiesPage: React.FC = () => {
   // Fetch summary counts
   useEffect(() => {
     const fetchSummaries = async () => {
-      // Fetch stage summary using a raw SQL query approach
+      // Fetch stage summary using raw SQL syntax in select
       const { data: stageData, error: stageError } = await supabase
         .from('opportunities')
-        .select(`
-          stage,
-          count(*)
-        `)
-        .group('stage');
+        .select('stage, count(*)')
+        .order('stage')
+        .then(result => {
+          // Convert the raw results to our expected format
+          if (result.data) {
+            return {
+              ...result,
+              data: result.data.map(item => ({
+                stage: item.stage,
+                count: parseInt(item.count, 10)
+              }))
+            };
+          }
+          return result;
+        });
       
       if (!stageError && stageData) {
         setStageSummary(stageData as StageSummary[]);
       }
       
-      // Fetch type summary using a raw SQL query approach
+      // Fetch type summary using raw SQL syntax in select
       const { data: typeData, error: typeError } = await supabase
         .from('opportunities')
-        .select(`
-          opportunity_type,
-          count(*)
-        `)
-        .group('opportunity_type');
+        .select('opportunity_type, count(*)')
+        .order('opportunity_type')
+        .then(result => {
+          // Convert the raw results to our expected format
+          if (result.data) {
+            return {
+              ...result,
+              data: result.data.map(item => ({
+                opportunity_type: item.opportunity_type,
+                count: parseInt(item.count, 10)
+              }))
+            };
+          }
+          return result;
+        });
       
       if (!typeError && typeData) {
         setTypeSummary(typeData as TypeSummary[]);
@@ -132,7 +151,6 @@ const OpportunitiesPage: React.FC = () => {
     }
   };
 
-  // Format currency value
   const formatCurrency = (value: number | null) => {
     if (value === null) return '—';
     return new Intl.NumberFormat('en-US', {
@@ -141,7 +159,6 @@ const OpportunitiesPage: React.FC = () => {
     }).format(value);
   };
 
-  // Get stage badge color
   const getStageBadgeColor = (stage: string, type: string) => {
     if (stage === 'Closed Won') return 'bg-green-100 text-green-800';
     if (stage === 'Closed Lost') return 'bg-red-100 text-red-800';
@@ -160,13 +177,11 @@ const OpportunitiesPage: React.FC = () => {
     return 'bg-gray-100 text-gray-800';
   };
 
-  // Count total opportunities for a specific stage
   const getStageSummaryCount = (stage: string) => {
     const found = stageSummary.find(item => item.stage === stage);
     return found ? found.count : 0;
   };
 
-  // Count total opportunities for a specific type
   const getTypeSummaryCount = (type: string) => {
     const found = typeSummary.find(item => item.opportunity_type === type);
     return found ? found.count : 0;
