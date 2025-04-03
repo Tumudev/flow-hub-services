@@ -11,12 +11,18 @@ import { supabase } from '@/integrations/supabase/client';
 import { Tables } from '@/integrations/supabase/types';
 import LinkSolutionModal from '@/components/discovery/LinkSolutionModal';
 import ConfirmationDialog from '@/components/ConfirmationDialog';
+import TemplateSectionNotes from '@/components/discovery/TemplateSectionNotes';
 
 type DiscoverySession = Tables<'discovery_sessions'> & {
   linked_solutions?: {
     id: string;
     name: string;
   }[];
+  discovery_templates?: {
+    id: string;
+    name: string;
+    sections: string[];
+  } | null;
 };
 
 const DiscoverySessionDetailPage: React.FC = () => {
@@ -34,10 +40,17 @@ const DiscoverySessionDetailPage: React.FC = () => {
     queryFn: async () => {
       if (!id) throw new Error('Session ID is required');
       
-      // Get the discovery session
+      // Get the discovery session with template
       const { data: sessionData, error: sessionError } = await supabase
         .from('discovery_sessions')
-        .select('*')
+        .select(`
+          *,
+          discovery_templates (
+            id,
+            name,
+            sections
+          )
+        `)
         .eq('id', id)
         .single();
       
@@ -189,6 +202,16 @@ const DiscoverySessionDetailPage: React.FC = () => {
     return session?.linked_solutions?.map(solution => solution.id) || [];
   };
 
+  // Function to check if we have a valid template with sections
+  const hasTemplateSections = () => {
+    return (
+      session?.discovery_templates && 
+      session.discovery_templates.sections && 
+      Array.isArray(session.discovery_templates.sections) && 
+      session.discovery_templates.sections.length > 0
+    );
+  };
+
   if (isLoading) {
     return (
       <div className="space-y-6">
@@ -276,6 +299,16 @@ const DiscoverySessionDetailPage: React.FC = () => {
                 </div>
               </div>
             )}
+
+            {session.discovery_templates && (
+              <div className="flex items-center">
+                <div className="h-5 w-5 text-gray-500 mr-2">📋</div>
+                <div>
+                  <p className="text-sm text-gray-500">Template</p>
+                  <p className="text-lg font-medium">{session.discovery_templates.name}</p>
+                </div>
+              </div>
+            )}
           </div>
           
           <div>
@@ -341,12 +374,22 @@ const DiscoverySessionDetailPage: React.FC = () => {
         
         <div className="space-y-2">
           <h2 className="text-lg font-medium">Session Notes</h2>
-          <Textarea 
-            value={notes || ''}
-            onChange={(e) => setNotes(e.target.value)}
-            placeholder="Enter session notes here..."
-            className="min-h-[200px] w-full"
-          />
+          
+          {hasTemplateSections() ? (
+            <TemplateSectionNotes 
+              sections={session.discovery_templates.sections}
+              initialNotes={session.notes || ''}
+              onChange={setNotes}
+            />
+          ) : (
+            <Textarea 
+              value={notes || ''}
+              onChange={(e) => setNotes(e.target.value)}
+              placeholder="Enter session notes here..."
+              className="min-h-[200px] w-full"
+            />
+          )}
+          
           <div className="flex justify-end mt-4">
             <Button 
               onClick={handleSaveNotes}

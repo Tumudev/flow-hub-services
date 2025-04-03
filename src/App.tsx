@@ -16,6 +16,7 @@ import OpportunitiesPage from "@/pages/OpportunitiesPage";
 import OpportunityDetailPage from "@/pages/opportunities/OpportunityDetailPage";
 import DiscoverySessionListPage from "@/pages/discovery/DiscoverySessionListPage";
 import DiscoverySessionDetailPage from "@/pages/discovery/DiscoverySessionDetailPage";
+import DiscoveryTemplateListPage from "@/pages/settings/templates/DiscoveryTemplateListPage";
 import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -43,6 +44,7 @@ const App = () => (
               <Route path="opportunities/:id" element={<OpportunityDetailPage />} />
               <Route path="discovery" element={<DiscoverySessionListPage />} />
               <Route path="discovery/:id" element={<DiscoverySessionDetailPage />} />
+              <Route path="settings/templates" element={<DiscoveryTemplateListPage />} />
             </Route>
 
             <Route path="*" element={<NotFound />} />

@@ -1,6 +1,6 @@
 
-import React from 'react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import React, { useState, useEffect } from 'react';
+import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -30,6 +30,13 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Calendar } from '@/components/ui/calendar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -39,6 +46,7 @@ const formSchema = z.object({
   client_name: z.string().min(1, 'Client name is required'),
   opportunity_name: z.string().optional(),
   session_date: z.date(),
+  template_id: z.string().optional(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -60,7 +68,23 @@ const DiscoverySessionForm: React.FC<DiscoverySessionFormProps> = ({
       client_name: '',
       opportunity_name: '',
       session_date: new Date(),
+      template_id: undefined,
     },
+  });
+
+  // Fetch available templates
+  const { data: templates } = useQuery({
+    queryKey: ['discoveryTemplates'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('discovery_templates')
+        .select('id, name')
+        .order('name');
+      
+      if (error) throw error;
+      return data;
+    },
+    enabled: isOpen, // Only fetch when the modal is open
   });
 
   const createSessionMutation = useMutation({
@@ -69,6 +93,7 @@ const DiscoverySessionForm: React.FC<DiscoverySessionFormProps> = ({
         client_name: values.client_name,
         opportunity_name: values.opportunity_name || null,
         session_date: values.session_date.toISOString(),
+        template_id: values.template_id || null,
       };
 
       const { data, error } = await supabase
@@ -166,6 +191,35 @@ const DiscoverySessionForm: React.FC<DiscoverySessionFormProps> = ({
                       />
                     </PopoverContent>
                   </Popover>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <FormField
+              control={form.control}
+              name="template_id"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Template (Optional)</FormLabel>
+                  <Select 
+                    onValueChange={field.onChange} 
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a template (optional)" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="">None</SelectItem>
+                      {templates?.map((template) => (
+                        <SelectItem key={template.id} value={template.id}>
+                          {template.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}

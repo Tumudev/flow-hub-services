@@ -1,10 +1,16 @@
 
 import React, { useState } from 'react';
 import { Outlet } from 'react-router-dom';
-import { Menu, X, LayoutDashboard, Lightbulb, Target, LogOut } from 'lucide-react';
+import { Menu, X, LayoutDashboard, Lightbulb, Target, Settings, LogOut } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import SidebarLink from '@/components/SidebarLink';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 const MainLayout: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -48,6 +54,31 @@ const MainLayout: React.FC = () => {
               <SidebarLink to="/solutions" icon={<Lightbulb size={18} />} label="Solutions" />
               <SidebarLink to="/opportunities" icon={<Target size={18} />} label="Opportunities" />
               <SidebarLink to="/discovery" icon={<LayoutDashboard size={18} />} label="Discovery" />
+            </ul>
+          </div>
+          
+          <div className="mb-6">
+            <p className="text-sm text-sidebar-foreground/70 mb-2 px-2">
+              Settings
+            </p>
+            <ul className="space-y-1">
+              <li>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button className="flex items-center w-full px-3 py-2 text-sm rounded-md hover:bg-sidebar-accent text-sidebar-foreground">
+                      <Settings size={18} className="mr-2" />
+                      <span>Settings</span>
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent side="right" className="w-56" align="start">
+                    <DropdownMenuItem asChild>
+                      <a href="/settings/templates" className="cursor-pointer">
+                        Discovery Templates
+                      </a>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </li>
             </ul>
           </div>
         </div>

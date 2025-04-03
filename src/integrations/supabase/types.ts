@@ -73,6 +73,38 @@ export type Database = {
           template_id?: string | null
           updated_at?: string
         }
+        Relationships: [
+          {
+            foreignKeyName: "discovery_sessions_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "discovery_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      discovery_templates: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          sections: Json
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          sections?: Json
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          sections?: Json
+          updated_at?: string
+        }
         Relationships: []
       }
       opportunities: {
