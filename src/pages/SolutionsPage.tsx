@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
@@ -15,23 +14,16 @@ import {
   DialogTitle, 
   DialogTrigger 
 } from '@/components/ui/dialog';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { Tables } from '@/integrations/supabase/types';
 
-interface Solution {
-  id: string;
-  name: string;
-  description: string | null;
-  pain_points: string | null;
-  is_active: boolean;
-  created_at: string;
-  updated_at: string;
-}
+type Solution = Tables<'solutions'>;
 
 const solutionSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
