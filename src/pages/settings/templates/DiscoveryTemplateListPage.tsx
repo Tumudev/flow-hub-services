@@ -3,14 +3,12 @@ import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ArrowLeft, Plus, Pencil, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { Tables } from '@/integrations/supabase/types';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import DiscoveryTemplateForm from '@/components/discovery/DiscoveryTemplateForm';
 import ConfirmationDialog from '@/components/ConfirmationDialog';
-
-type DiscoveryTemplate = Tables<'discovery_templates'>;
+import { DiscoveryTemplate } from '@/types/discoveryTypes';
 
 const DiscoveryTemplateListPage: React.FC = () => {
   const navigate = useNavigate();
@@ -29,7 +27,7 @@ const DiscoveryTemplateListPage: React.FC = () => {
         .order('name');
       
       if (error) throw error;
-      return data as DiscoveryTemplate[];
+      return data as unknown as DiscoveryTemplate[];
     }
   });
 

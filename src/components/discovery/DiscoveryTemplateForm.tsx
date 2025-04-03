@@ -7,7 +7,7 @@ import { z } from 'zod';
 import { X, Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
-import { Tables, TablesInsert } from '@/integrations/supabase/types';
+import { DiscoveryTemplate } from '@/types/discoveryTypes';
 
 import {
   Dialog,
@@ -26,9 +26,6 @@ import {
 } from '@/components/ui/form';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-
-type DiscoveryTemplate = Tables<'discovery_templates'>;
-type DiscoveryTemplateInsert = TablesInsert<'discovery_templates'>;
 
 const formSchema = z.object({
   name: z.string().min(1, 'Template name is required'),
@@ -88,7 +85,7 @@ const DiscoveryTemplateForm: React.FC<DiscoveryTemplateFormProps> = ({
         return data;
       } else {
         // Create new template
-        const newTemplate: DiscoveryTemplateInsert = {
+        const newTemplate = {
           name,
           sections,
         };

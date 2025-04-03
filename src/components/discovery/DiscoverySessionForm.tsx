@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -8,7 +8,7 @@ import { format } from 'date-fns';
 import { CalendarIcon } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from "sonner";
-import { TablesInsert } from '@/integrations/supabase/types';
+import { DiscoveryTemplate } from '@/types/discoveryTypes';
 
 import {
   Dialog,
@@ -50,7 +50,6 @@ const formSchema = z.object({
 });
 
 type FormValues = z.infer<typeof formSchema>;
-type DiscoverySessionInsert = TablesInsert<'discovery_sessions'>;
 
 interface DiscoverySessionFormProps {
   isOpen: boolean;
@@ -82,14 +81,14 @@ const DiscoverySessionForm: React.FC<DiscoverySessionFormProps> = ({
         .order('name');
       
       if (error) throw error;
-      return data;
+      return data as unknown as Pick<DiscoveryTemplate, 'id' | 'name'>[];
     },
     enabled: isOpen, // Only fetch when the modal is open
   });
 
   const createSessionMutation = useMutation({
     mutationFn: async (values: FormValues) => {
-      const sessionData: DiscoverySessionInsert = {
+      const sessionData = {
         client_name: values.client_name,
         opportunity_name: values.opportunity_name || null,
         session_date: values.session_date.toISOString(),
