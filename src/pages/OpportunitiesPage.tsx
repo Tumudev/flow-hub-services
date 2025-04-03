@@ -1,8 +1,6 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { format } from 'date-fns';
 import { 
   Table, 
   TableBody, 
@@ -14,10 +12,8 @@ import {
 import { Button } from '@/components/ui/button';
 import { Plus, Building, DollarSign, Tag } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { Tables } from '@/integrations/supabase/types';
 import OpportunityForm from '@/components/opportunities/OpportunityForm';
-
-type Opportunity = Tables<'opportunities'>;
+import { Opportunity } from '@/components/opportunities/interfaces';
 
 const OpportunitiesPage: React.FC = () => {
   const navigate = useNavigate();

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation } from '@tanstack/react-query';
@@ -15,7 +14,6 @@ import {
   Trash2 
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { Tables } from '@/integrations/supabase/types';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import {
@@ -25,12 +23,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-
-type Opportunity = Tables<'opportunities'>;
-
-// Stage options based on opportunity type
-const conceptStages = ['Discovery', 'Proposal', 'Agreement Sent', 'Closed Won', 'Closed Lost'];
-const auditStages = ['Audit Proposed', 'Audit Signed', 'Audit Paid', 'Audit Delivered', 'Closed Won', 'Closed Lost'];
+import { Opportunity, conceptStages, auditStages } from '@/components/opportunities/interfaces';
 
 const OpportunityDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -82,9 +75,11 @@ const OpportunityDetailPage: React.FC = () => {
       if (error) throw error;
       return data as Opportunity;
     },
-    onSuccess: (data) => {
-      setDescription(data.description || '');
-      setStage(data.stage);
+    onSettled: (data) => {
+      if (data) {
+        setDescription(data.description || '');
+        setStage(data.stage);
+      }
     },
   });
 

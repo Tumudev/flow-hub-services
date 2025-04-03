@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -6,7 +5,7 @@ import * as z from 'zod';
 import { useMutation } from '@tanstack/react-query';
 import { toast } from "sonner";
 import { supabase } from '@/integrations/supabase/client';
-import { TablesInsert } from '@/integrations/supabase/types';
+import { OpportunityFormValues, conceptStages, auditStages } from './interfaces';
 
 import {
   Dialog,
@@ -45,18 +44,11 @@ const formSchema = z.object({
   estimated_value: z.string().optional().transform(val => val ? parseFloat(val) : null),
 });
 
-type FormValues = z.infer<typeof formSchema>;
-type OpportunityInsert = TablesInsert<'opportunities'>;
-
 interface OpportunityFormProps {
   isOpen: boolean;
   onClose: (shouldRefetch: boolean) => void;
-  initialData?: FormValues;
+  initialData?: OpportunityFormValues;
 }
-
-// Stage options based on opportunity type
-const conceptStages = ['Discovery', 'Proposal', 'Agreement Sent', 'Closed Won', 'Closed Lost'];
-const auditStages = ['Audit Proposed', 'Audit Signed', 'Audit Paid', 'Audit Delivered', 'Closed Won', 'Closed Lost'];
 
 const OpportunityForm: React.FC<OpportunityFormProps> = ({
   isOpen,
@@ -70,7 +62,7 @@ const OpportunityForm: React.FC<OpportunityFormProps> = ({
   // Get relevant stages based on opportunity type
   const relevantStages = opportunityType === 'Concept' ? conceptStages : auditStages;
 
-  const form = useForm<FormValues>({
+  const form = useForm<OpportunityFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: initialData || {
       name: '',
@@ -83,14 +75,14 @@ const OpportunityForm: React.FC<OpportunityFormProps> = ({
   });
 
   const createOpportunityMutation = useMutation({
-    mutationFn: async (values: FormValues) => {
-      const opportunityData: OpportunityInsert = {
+    mutationFn: async (values: OpportunityFormValues) => {
+      const opportunityData = {
         name: values.name,
         client_name: values.client_name,
         description: values.description || null,
         opportunity_type: values.opportunity_type,
         stage: values.stage,
-        estimated_value: values.estimated_value as number | null,
+        estimated_value: values.estimated_value ? parseFloat(values.estimated_value) : null,
       };
 
       const { data, error } = await supabase
@@ -110,7 +102,7 @@ const OpportunityForm: React.FC<OpportunityFormProps> = ({
     },
   });
 
-  const onSubmit = (values: FormValues) => {
+  const onSubmit = (values: OpportunityFormValues) => {
     createOpportunityMutation.mutate(values);
   };
 
