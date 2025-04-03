@@ -13,4 +13,6 @@ export interface DiscoveryTemplate {
 export interface DiscoverySession extends Tables<'discovery_sessions'> {
   // Add optional property for template relationship
   template?: DiscoveryTemplate | null;
+  // Add optional property for linked solutions relationship
+  linked_solutions?: { id: string; name: string }[];
 }

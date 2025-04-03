@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -24,13 +23,11 @@ const DiscoverySessionDetailPage: React.FC = () => {
   const [isLinkModalOpen, setIsLinkModalOpen] = useState(false);
   const [isEditingNotes, setIsEditingNotes] = useState(false);
 
-  // Fetch discovery session details including template and linked solutions
   const { data: session, isLoading, error } = useQuery({
     queryKey: ['discoverySession', id],
     queryFn: async () => {
       if (!id) throw new Error('Session ID is required');
       
-      // First, query the discovery session with its template
       const { data: sessionData, error: sessionError } = await supabase
         .from('discovery_sessions')
         .select(`
@@ -46,7 +43,6 @@ const DiscoverySessionDetailPage: React.FC = () => {
       
       if (sessionError) throw sessionError;
       
-      // Then, query linked solutions
       const { data: solutionsData, error: solutionsError } = await supabase
         .from('discovery_session_solutions')
         .select(`
@@ -59,13 +55,11 @@ const DiscoverySessionDetailPage: React.FC = () => {
       
       if (solutionsError) throw solutionsError;
       
-      // Reshape the data to match our expected format
       const linkedSolutions = solutionsData.map(item => ({
         id: item.solution.id,
         name: item.solution.name
       }));
       
-      // Combine everything into a single session object with typed template and solutions
       const result = {
         ...sessionData,
         template: sessionData.template as DiscoveryTemplate,
@@ -75,7 +69,6 @@ const DiscoverySessionDetailPage: React.FC = () => {
         template?: DiscoveryTemplate 
       };
       
-      // Initialize notes state when data is loaded
       setNotes(result.notes || '');
       setIsEditingNotes(false);
       
@@ -84,7 +77,6 @@ const DiscoverySessionDetailPage: React.FC = () => {
     enabled: !!id,
   });
 
-  // Update notes mutation
   const updateNotesMutation = useMutation({
     mutationFn: async (notesContent: string) => {
       if (!id) throw new Error('Session ID is required');
@@ -234,7 +226,6 @@ const DiscoverySessionDetailPage: React.FC = () => {
           
           <Separator />
           
-          {/* Linked Solutions */}
           <div>
             <h2 className="text-lg font-medium mb-3">Linked Solutions</h2>
             {session.linked_solutions && session.linked_solutions.length > 0 ? (
@@ -259,11 +250,9 @@ const DiscoverySessionDetailPage: React.FC = () => {
           
           <Separator />
           
-          {/* Discovery Notes */}
           <div>
             <h2 className="text-lg font-medium mb-4">Discovery Notes</h2>
             
-            {/* Display template-based notes if a template with sections is available */}
             {hasTemplateSections ? (
               <TemplateSectionNotes
                 sections={session.template.sections as string[]}
@@ -271,7 +260,6 @@ const DiscoverySessionDetailPage: React.FC = () => {
                 onChange={handleNotesChange}
               />
             ) : (
-              /* Display regular textarea if no template sections are available */
               <Textarea
                 value={notes}
                 onChange={(e) => handleNotesChange(e.target.value)}
@@ -283,13 +271,12 @@ const DiscoverySessionDetailPage: React.FC = () => {
         </div>
       </div>
       
-      {/* Link Solution Modal */}
       <LinkSolutionModal
         isOpen={isLinkModalOpen}
         onClose={() => setIsLinkModalOpen(false)}
-        discoverySessionId={id || ''}
+        discoverySessionId={id}
         onSuccess={handleLinkSolutionSuccess}
-        existingSolutionIds={session.linked_solutions?.map(s => s.id) || []}
+        linkedSolutionIds={session?.linked_solutions?.map(s => s.id) || []}
       />
     </div>
   );
