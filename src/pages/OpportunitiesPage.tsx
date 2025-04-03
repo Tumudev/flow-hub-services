@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -64,21 +63,28 @@ const OpportunitiesPage: React.FC = () => {
   // Fetch summary counts
   useEffect(() => {
     const fetchSummaries = async () => {
-      // Fetch stage summary
+      // Fetch stage summary using a raw SQL query approach
       const { data: stageData, error: stageError } = await supabase
         .from('opportunities')
-        .select('stage, count(*)', { count: 'exact' })
-        .group('stage');
+        .select('stage, count')
+        .select(`
+          stage,
+          count(*)
+        `)
+        .groupBy('stage');
       
       if (!stageError && stageData) {
         setStageSummary(stageData as StageSummary[]);
       }
       
-      // Fetch type summary
+      // Fetch type summary using a raw SQL query approach
       const { data: typeData, error: typeError } = await supabase
         .from('opportunities')
-        .select('opportunity_type, count(*)', { count: 'exact' })
-        .group('opportunity_type');
+        .select(`
+          opportunity_type,
+          count(*)
+        `)
+        .groupBy('opportunity_type');
       
       if (!typeError && typeData) {
         setTypeSummary(typeData as TypeSummary[]);
