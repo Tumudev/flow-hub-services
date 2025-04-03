@@ -12,6 +12,7 @@ export type Opportunity = {
   estimated_value: number | null;
   created_at: string;
   updated_at: string;
+  discovery_session_id: string | null;
 };
 
 // Create a type for the form values
