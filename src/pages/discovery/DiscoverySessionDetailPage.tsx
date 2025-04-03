@@ -28,13 +28,13 @@ const DiscoverySessionDetailPage: React.FC = () => {
   const [isUnlinkConfirmOpen, setIsUnlinkConfirmOpen] = useState(false);
   const [solutionToUnlink, setSolutionToUnlink] = useState<string | null>(null);
 
-  // Fetch discovery session details with linked solutions
+  // Fetch discovery session details and linked solutions separately
   const { data: session, isLoading, error, refetch } = useQuery({
     queryKey: ['discoverySession', id],
     queryFn: async () => {
       if (!id) throw new Error('Session ID is required');
       
-      // First, get the discovery session
+      // Get the discovery session
       const { data: sessionData, error: sessionError } = await supabase
         .from('discovery_sessions')
         .select('*')
@@ -43,26 +43,37 @@ const DiscoverySessionDetailPage: React.FC = () => {
       
       if (sessionError) throw sessionError;
       
-      // Then get linked solutions
-      const { data: linkedSolutions, error: linkedError } = await supabase
+      // Get the linked solutions through the junction table
+      const { data: linkData, error: linkError } = await supabase
         .from('discovery_session_solutions')
-        .select(`
-          solutions:solution_id (
-            id,
-            name
-          )
-        `)
+        .select('solution_id')
         .eq('discovery_session_id', id);
       
-      if (linkedError) throw linkedError;
+      if (linkError) throw linkError;
+      
+      // If there are linked solutions, fetch their details
+      let linkedSolutions: { id: string; name: string }[] = [];
+      
+      if (linkData && linkData.length > 0) {
+        const solutionIds = linkData.map(item => item.solution_id);
+        
+        const { data: solutionsData, error: solutionsError } = await supabase
+          .from('solutions')
+          .select('id, name')
+          .in('id', solutionIds);
+        
+        if (solutionsError) throw solutionsError;
+        
+        if (solutionsData) {
+          linkedSolutions = solutionsData;
+        }
+      }
       
       // Combine the data
-      const combinedData = {
+      return {
         ...sessionData,
-        linked_solutions: linkedSolutions.map(item => item.solutions)
-      };
-      
-      return combinedData as DiscoverySession;
+        linked_solutions: linkedSolutions
+      } as DiscoverySession;
     },
   });
 

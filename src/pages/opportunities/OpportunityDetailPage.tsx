@@ -30,6 +30,14 @@ import { Opportunity, conceptStages, auditStages } from '@/components/opportunit
 import LinkDiscoverySessionModal from '@/components/opportunities/LinkDiscoverySessionModal';
 import ConfirmationDialog from '@/components/ConfirmationDialog';
 
+type OpportunityWithDiscoverySession = Opportunity & {
+  discovery_session?: {
+    id: string;
+    client_name: string;
+    session_date: string;
+  } | null;
+};
+
 const OpportunityDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -74,27 +82,36 @@ const OpportunityDetailPage: React.FC = () => {
     queryFn: async () => {
       if (!id) throw new Error('Opportunity ID is required');
       
+      // First get the opportunity data
       const { data, error } = await supabase
         .from('opportunities')
-        .select(`
-          *,
-          discovery_sessions:discovery_session_id (
-            id,
-            client_name,
-            session_date
-          )
-        `)
+        .select('*')
         .eq('id', id)
         .single();
       
       if (error) throw error;
-      return data as Opportunity & { 
-        discovery_sessions: { 
-          id: string; 
-          client_name: string; 
-          session_date: string 
-        } | null 
-      };
+      
+      const opportunityData = data as Opportunity;
+      
+      // If the opportunity has a linked discovery session, fetch it
+      let discoverySession = null;
+      if (opportunityData.discovery_session_id) {
+        const { data: sessionData, error: sessionError } = await supabase
+          .from('discovery_sessions')
+          .select('id, client_name, session_date')
+          .eq('id', opportunityData.discovery_session_id)
+          .single();
+        
+        if (!sessionError && sessionData) {
+          discoverySession = sessionData;
+        }
+      }
+      
+      // Return combined data
+      return {
+        ...opportunityData,
+        discovery_session: discoverySession
+      } as OpportunityWithDiscoverySession;
     }
   });
 
@@ -359,18 +376,18 @@ const OpportunityDetailPage: React.FC = () => {
           {/* Linked Discovery Session Section */}
           <div>
             <h3 className="text-sm font-medium text-gray-500 mb-2">Linked Discovery Session</h3>
-            {opportunity.discovery_sessions ? (
+            {opportunity.discovery_session ? (
               <div className="bg-blue-50 p-4 rounded-md">
                 <div className="flex justify-between items-start">
                   <div>
-                    <h4 className="font-medium">{opportunity.discovery_sessions.client_name}</h4>
-                    <p className="text-sm text-gray-600">{format(new Date(opportunity.discovery_sessions.session_date), 'MMM d, yyyy')}</p>
+                    <h4 className="font-medium">{opportunity.discovery_session.client_name}</h4>
+                    <p className="text-sm text-gray-600">{format(new Date(opportunity.discovery_session.session_date), 'MMM d, yyyy')}</p>
                   </div>
                   <div className="flex gap-2">
                     <Button 
                       variant="outline" 
                       size="sm"
-                      onClick={() => navigate(`/discovery/${opportunity.discovery_sessions?.id}`)}
+                      onClick={() => navigate(`/discovery/${opportunity.discovery_session?.id}`)}
                     >
                       <LinkIcon className="h-4 w-4 mr-1" />
                       View
