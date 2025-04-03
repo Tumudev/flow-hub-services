@@ -10,7 +10,8 @@ import MainLayout from "@/layouts/MainLayout";
 import LoginPage from "@/pages/LoginPage";
 import SignupPage from "@/pages/SignupPage";
 import DashboardPage from "@/pages/DashboardPage";
-import SolutionsPage from "@/pages/SolutionsPage";
+import SolutionListPage from "@/pages/solutions/SolutionListPage";
+import SolutionDetailPage from "@/pages/solutions/SolutionDetailPage";
 import OpportunitiesPage from "@/pages/OpportunitiesPage";
 import DiscoveryPage from "@/pages/DiscoveryPage";
 import NotFound from "@/pages/NotFound";
@@ -34,7 +35,8 @@ const App = () => (
               </ProtectedRoute>
             }>
               <Route index element={<DashboardPage />} />
-              <Route path="solutions" element={<SolutionsPage />} />
+              <Route path="solutions" element={<SolutionListPage />} />
+              <Route path="solutions/:id" element={<SolutionDetailPage />} />
               <Route path="opportunities" element={<OpportunitiesPage />} />
               <Route path="discovery" element={<DiscoveryPage />} />
             </Route>
