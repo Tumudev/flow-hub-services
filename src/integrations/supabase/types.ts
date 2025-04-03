@@ -42,6 +42,42 @@ export type Database = {
         }
         Relationships: []
       }
+      opportunities: {
+        Row: {
+          client_name: string
+          created_at: string
+          description: string | null
+          estimated_value: number | null
+          id: string
+          name: string
+          opportunity_type: string
+          stage: string
+          updated_at: string
+        }
+        Insert: {
+          client_name: string
+          created_at?: string
+          description?: string | null
+          estimated_value?: number | null
+          id?: string
+          name: string
+          opportunity_type?: string
+          stage: string
+          updated_at?: string
+        }
+        Update: {
+          client_name?: string
+          created_at?: string
+          description?: string | null
+          estimated_value?: number | null
+          id?: string
+          name?: string
+          opportunity_type?: string
+          stage?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       solutions: {
         Row: {
           created_at: string

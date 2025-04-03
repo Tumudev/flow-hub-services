@@ -13,6 +13,7 @@ import DashboardPage from "@/pages/DashboardPage";
 import SolutionListPage from "@/pages/solutions/SolutionListPage";
 import SolutionDetailPage from "@/pages/solutions/SolutionDetailPage";
 import OpportunitiesPage from "@/pages/OpportunitiesPage";
+import OpportunityDetailPage from "@/pages/opportunities/OpportunityDetailPage";
 import DiscoverySessionListPage from "@/pages/discovery/DiscoverySessionListPage";
 import DiscoverySessionDetailPage from "@/pages/discovery/DiscoverySessionDetailPage";
 import NotFound from "@/pages/NotFound";
@@ -39,6 +40,7 @@ const App = () => (
               <Route path="solutions" element={<SolutionListPage />} />
               <Route path="solutions/:id" element={<SolutionDetailPage />} />
               <Route path="opportunities" element={<OpportunitiesPage />} />
+              <Route path="opportunities/:id" element={<OpportunityDetailPage />} />
               <Route path="discovery" element={<DiscoverySessionListPage />} />
               <Route path="discovery/:id" element={<DiscoverySessionDetailPage />} />
             </Route>
