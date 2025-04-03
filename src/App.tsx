@@ -14,6 +14,8 @@ import SolutionListPage from "@/pages/solutions/SolutionListPage";
 import SolutionDetailPage from "@/pages/solutions/SolutionDetailPage";
 import OpportunitiesPage from "@/pages/OpportunitiesPage";
 import DiscoveryPage from "@/pages/DiscoveryPage";
+import DiscoverySessionListPage from "@/pages/discovery/DiscoverySessionListPage";
+import DiscoverySessionDetailPage from "@/pages/discovery/DiscoverySessionDetailPage";
 import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -38,7 +40,8 @@ const App = () => (
               <Route path="solutions" element={<SolutionListPage />} />
               <Route path="solutions/:id" element={<SolutionDetailPage />} />
               <Route path="opportunities" element={<OpportunitiesPage />} />
-              <Route path="discovery" element={<DiscoveryPage />} />
+              <Route path="discovery" element={<DiscoverySessionListPage />} />
+              <Route path="discovery/:id" element={<DiscoverySessionDetailPage />} />
             </Route>
 
             <Route path="*" element={<NotFound />} />
